@@ -1,39 +1,21 @@
-/**
- * Status Badge Component
- * =======================
- * Shows a colored badge for automation status (active/paused)
- * or log status (success/failed/skipped).
- */
-
 import React from 'react';
 
 interface Props {
   status: string;
 }
 
-// Color mapping for each status type
-const COLORS: Record<string, { bg: string; text: string }> = {
-  success: { bg: '#E6F9F0', text: '#00875A' },
-  failed:  { bg: '#FFF0F0', text: '#DE350B' },
-  skipped: { bg: '#F4F5F7', text: '#6B778C' },
-  active:  { bg: '#E6F4FF', text: '#0065FF' },
-  paused:  { bg: '#FFF8E1', text: '#FF8B00' },
+const CLASSES: Record<string, string> = {
+  success: 'bg-green-100 text-green-700',
+  failed:  'bg-red-100 text-red-600',
+  skipped: 'bg-gray-100 text-gray-500',
+  active:  'bg-blue-100 text-blue-600',
+  paused:  'bg-amber-100 text-amber-600',
 };
 
 const StatusBadge: React.FC<Props> = ({ status }) => {
-  const color = COLORS[status] || COLORS.skipped;
-
+  const cls = CLASSES[status] ?? CLASSES.skipped;
   return (
-    <span style={{
-      backgroundColor: color.bg,
-      color:           color.text,
-      padding:         '3px 10px',
-      borderRadius:    12,
-      fontSize:        12,
-      fontWeight:      600,
-      textTransform:   'capitalize',
-      whiteSpace:      'nowrap',
-    }}>
+    <span className={`${cls} px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize whitespace-nowrap`}>
       {status}
     </span>
   );

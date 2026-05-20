@@ -19,7 +19,7 @@ const api = axios.create({
 
 /** Get all automations for a workspace */
 export const getAutomations = (workspaceId: string) =>
-  api.get(`/automations/${workspaceId}`).then(r => r.data.automations);
+  api.get(`/automations/${workspaceId}`).then(r => r.data.automations ?? []);
 
 /** Create a new automation */
 export const createAutomation = (data: any) =>
@@ -39,30 +39,30 @@ export const deleteAutomation = (id: string) =>
 
 /** Get execution logs for an automation */
 export const getLogs = (automationId: string) =>
-  api.get(`/automations/${automationId}/logs`).then(r => r.data.logs);
+  api.get(`/automations/${automationId}/logs`).then(r => r.data.logs ?? []);
 
 // ── monday.com Data APIs ──────────────────────────────────────────────────────
 
 /** Get all boards in the workspace */
 export const getBoards = (workspaceId: string) =>
-  api.get(`/monday/boards/${workspaceId}`).then(r => r.data.boards);
+  api.get(`/monday/boards/${workspaceId}`).then(r => r.data.boards ?? []);
 
 /** Get all columns of a board */
 export const getBoardColumns = (workspaceId: string, boardId: string) =>
-  api.get(`/monday/columns/${workspaceId}/${boardId}`).then(r => r.data.columns);
+  api.get(`/monday/columns/${workspaceId}/${boardId}`).then(r => r.data.columns ?? []);
 
 /** Get all groups of a board */
 export const getBoardGroups = (workspaceId: string, boardId: string) =>
-  api.get(`/monday/groups/${workspaceId}/${boardId}`).then(r => r.data.groups);
+  api.get(`/monday/groups/${workspaceId}/${boardId}`).then(r => r.data.groups ?? []);
 
 /** Get all items of a board */
 export const getBoardItems = (workspaceId: string, boardId: string) =>
-  api.get(`/monday/items/${workspaceId}/${boardId}`).then(r => r.data.items);
+  api.get(`/monday/items/${workspaceId}/${boardId}`).then(r => r.data.items ?? []);
 
 /** Get all users in the workspace */
 export const getUsers = (workspaceId: string) =>
-  api.get(`/monday/users/${workspaceId}`).then(r => r.data.users);
+  api.get(`/monday/users/${workspaceId}`).then(r => r.data.users ?? []);
 
 /** Get all status label options for a status column */
 export const getStatusLabels = (workspaceId: string, boardId: string, columnId: string) =>
-  api.get(`/monday/status-labels/${workspaceId}/${boardId}/${columnId}`).then(r => r.data.labels);
+  api.get(`/monday/status-labels/${workspaceId}/${boardId}/${columnId}`).then(r => r.data.labels ?? []);
