@@ -1,14 +1,3 @@
-/**
- * Automation List Page
- * =====================
- * Shows all automations for the workspace in a card list.
- * Each card shows:
- *   - Automation name and status (active/paused)
- *   - Trigger type → Action type flow
- *   - Run count and last triggered time
- *   - Buttons: Pause, Logs, Edit, Delete
- */
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAutomations, toggleAutomation, deleteAutomation } from '../api/client';
@@ -21,41 +10,26 @@ interface Props {
 
 const AutomationList: React.FC<Props> = ({ workspaceId }) => {
   const [automations, setAutomations] = useState<Automation[]>([]);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // Load automations from backend
-  const load = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const data = await getAutomations(workspaceId);
-      setAutomations(data);
-    } catch (e: any) {
-      setError(e.response?.data?.detail || e.message || 'Failed to load automations');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // AFTER — moves load inside useEffect, no warning
   useEffect(() => {
-      const fetchData = async () => {
-          try {
-              setLoading(true);
-              const data = await getAutomations(workspaceId);
-              setAutomations(data);
-          } catch (e: any) {
-              setError(e.message);
-          } finally {
-              setLoading(false);
-          }
-      };
-      fetchData();
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const data = await getAutomations(workspaceId);
+        setAutomations(Array.isArray(data) ? data : []);
+      } catch (e: any) {
+        setError(e.response?.data?.detail || e.message || 'Failed to load automations');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [workspaceId]);
 
-  // Toggle automation between active and paused
   const handleToggle = async (id: string, currentState: boolean) => {
     try {
       await toggleAutomation(id, !currentState);
@@ -67,7 +41,6 @@ const AutomationList: React.FC<Props> = ({ workspaceId }) => {
     }
   };
 
-  // Delete automation with confirmation
   const handleDelete = async (id: string, name: string) => {
     if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
     try {
@@ -78,50 +51,53 @@ const AutomationList: React.FC<Props> = ({ workspaceId }) => {
     }
   };
 
-  // ── Loading State ───────────────────────────────────────────────────────────
   if (loading) return (
-    <div style={s.center}>⏳ Loading your automations...</div>
+    <div className="text-center py-20 text-slate-500 text-base">⏳ Loading your automations...</div>
   );
 
-  // ── Error State ─────────────────────────────────────────────────────────────
   if (error) return (
-    <div style={s.center}>
-      <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
-      <h3 style={{ color: '#172B4D', margin: '0 0 8px' }}>Connection Error</h3>
-      <p style={{ color: '#6B778C', margin: '0 0 24px' }}>{error}</p>
-      <a href="http://localhost:3000/oauth/start"
-        style={{ ...s.primaryBtn, textDecoration: 'none', display: 'inline-block' }}>
+    <div className="text-center py-20 px-5">
+      <div className="text-5xl mb-4">⚠️</div>
+      <h3 className="text-xl font-bold text-slate-800 mb-2">Connection Error</h3>
+      <p className="text-slate-500 mb-6">{error}</p>
+      <a
+        href="http://localhost:3000/oauth/start"
+        className="inline-block bg-gradient-to-br from-[#6C47FF] to-[#4A90E2] text-white font-semibold px-5 py-2.5 rounded-lg no-underline"
+      >
         🔗 Connect to monday.com
       </a>
     </div>
   );
 
-  // ── Main Render ─────────────────────────────────────────────────────────────
   return (
-    <div style={s.container}>
+    <div className="max-w-4xl mx-auto px-5 py-7">
 
       {/* Top Bar */}
-      <div style={s.topBar}>
+      <div className="flex justify-between items-start mb-7 flex-wrap gap-4">
         <div>
-          <h1 style={s.title}>My Automations</h1>
-          <p style={s.subtitle}>
+          <h1 className="text-2xl font-bold text-slate-800 m-0">My Automations</h1>
+          <p className="text-sm text-slate-500 mt-1">
             {automations.length} automation{automations.length !== 1 ? 's' : ''} configured
           </p>
         </div>
-        <button style={s.primaryBtn} onClick={() => navigate('/builder')}>
+        <button
+          className="bg-gradient-to-br from-[#6C47FF] to-[#4A90E2] text-white font-semibold px-5 py-2.5 rounded-lg border-0 cursor-pointer text-sm"
+          onClick={() => navigate('/builder')}
+        >
           + New Automation
         </button>
       </div>
 
       {/* Empty State */}
       {automations.length === 0 && (
-        <div style={s.emptyState}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>⚡</div>
-          <h2 style={{ color: '#172B4D', margin: '0 0 8px' }}>No automations yet</h2>
-          <p style={{ color: '#6B778C', margin: '0 0 24px' }}>
-            Create your first cross-board automation to get started
-          </p>
-          <button style={s.primaryBtn} onClick={() => navigate('/builder')}>
+        <div className="text-center py-16 px-5 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+          <div className="text-5xl mb-4">⚡</div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">No automations yet</h2>
+          <p className="text-slate-500 mb-6">Create your first cross-board automation to get started</p>
+          <button
+            className="bg-gradient-to-br from-[#6C47FF] to-[#4A90E2] text-white font-semibold px-5 py-2.5 rounded-lg border-0 cursor-pointer text-sm"
+            onClick={() => navigate('/builder')}
+          >
             + Create First Automation
           </button>
         </div>
@@ -129,66 +105,57 @@ const AutomationList: React.FC<Props> = ({ workspaceId }) => {
 
       {/* Automation Cards */}
       {automations.map(automation => (
-        <div key={automation.id} style={s.card}>
+        <div key={automation.id} className="bg-white rounded-xl px-6 py-5 mb-4 shadow-sm border border-gray-200">
 
-          {/* Card Header: Name + Status + Action Buttons */}
-          <div style={s.cardHeader}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <span style={s.autoName}>{automation.name}</span>
+          {/* Card Header */}
+          <div className="flex justify-between items-center mb-3.5 flex-wrap gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="text-[17px] font-semibold text-slate-800">{automation.name}</span>
               <StatusBadge status={automation.is_active ? 'active' : 'paused'} />
             </div>
 
-            <div style={s.btnGroup}>
-              {/* Pause / Activate */}
+            <div className="flex gap-2 flex-wrap">
               <button
-                style={{
-                  ...s.actionBtn,
-                  background: automation.is_active ? '#FF8B00' : '#00875A',
-                  color:      '#fff',
-                }}
-                onClick={() => handleToggle(automation.id, automation.is_active)}>
+                className={`border-0 rounded-md px-3 py-1.5 cursor-pointer font-semibold text-xs text-white ${automation.is_active ? 'bg-amber-500' : 'bg-emerald-600'}`}
+                onClick={() => handleToggle(automation.id, automation.is_active)}
+              >
                 {automation.is_active ? '⏸ Pause' : '▶ Activate'}
               </button>
-
-              {/* View Logs */}
               <button
-                style={{ ...s.actionBtn, background: '#F4F5F7', color: '#42526E' }}
-                onClick={() => navigate(`/logs/${automation.id}`)}>
+                className="border-0 rounded-md px-3 py-1.5 cursor-pointer font-semibold text-xs bg-gray-100 text-slate-600"
+                onClick={() => navigate(`/logs/${automation.id}`)}
+              >
                 📋 Logs
               </button>
-
-              {/* Edit */}
               <button
-                style={{ ...s.actionBtn, background: '#E6F4FF', color: '#0065FF' }}
-                onClick={() => navigate(`/builder/${automation.id}`)}>
+                className="border-0 rounded-md px-3 py-1.5 cursor-pointer font-semibold text-xs bg-blue-50 text-blue-600"
+                onClick={() => navigate(`/builder/${automation.id}`)}
+              >
                 ✏️ Edit
               </button>
-
-              {/* Delete */}
               <button
-                style={{ ...s.actionBtn, background: '#FFF0F0', color: '#DE350B' }}
-                onClick={() => handleDelete(automation.id, automation.name)}>
+                className="border-0 rounded-md px-3 py-1.5 cursor-pointer font-semibold text-xs bg-red-50 text-red-600"
+                onClick={() => handleDelete(automation.id, automation.name)}
+              >
                 🗑 Delete
               </button>
             </div>
           </div>
 
-          {/* Flow: Trigger → Action */}
-          <div style={s.flow}>
-            <span style={s.flowBadge}>
+          {/* Flow */}
+          <div className="flex items-center gap-2.5 mb-3.5">
+            <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm text-slate-600">
               🎯 {automation.trigger_type.replace(/_/g, ' ')}
             </span>
-            <span style={{ fontSize: 18, color: '#6C47FF', fontWeight: 700 }}>→</span>
-            <span style={s.flowBadge}>
+            <span className="text-lg font-bold text-[#6C47FF]">→</span>
+            <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm text-slate-600">
               ⚡ {automation.action_type.replace(/_/g, ' ')}
             </span>
           </div>
 
-          {/* Stats: Run Count + Last Triggered + Created Date */}
-          <div style={s.stats}>
-            <span>
-              🔁 Runs: <strong>{automation.run_count ?? 0}</strong>
-            </span>
+          {/* Stats */}
+          <div className="flex gap-7 text-sm text-slate-500 flex-wrap">
+            <span>🔁 Runs: <strong>{automation.run_count ?? 0}</strong></span>
             <span>
               🕐 Last triggered:{' '}
               <strong>
@@ -197,33 +164,12 @@ const AutomationList: React.FC<Props> = ({ workspaceId }) => {
                   : 'Never'}
               </strong>
             </span>
-            <span>
-              📅 Created: <strong>{new Date(automation.created_at).toLocaleDateString()}</strong>
-            </span>
+            <span>📅 Created: <strong>{new Date(automation.created_at).toLocaleDateString()}</strong></span>
           </div>
         </div>
       ))}
     </div>
   );
-};
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-const s: Record<string, React.CSSProperties> = {
-  container:  { maxWidth: 1000, margin: '0 auto', padding: '28px 20px' },
-  topBar:     { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 },
-  title:      { margin: 0, fontSize: 26, fontWeight: 700, color: '#172B4D' },
-  subtitle:   { margin: '4px 0 0', fontSize: 14, color: '#6B778C' },
-  center:     { textAlign: 'center', padding: '80px 20px', color: '#6B778C', fontSize: 16 },
-  emptyState: { textAlign: 'center', padding: '60px 20px', background: '#fff', borderRadius: 16, border: '2px dashed #EBECF0' },
-  card:       { background: '#fff', borderRadius: 14, padding: '20px 24px', marginBottom: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', border: '1px solid #EBECF0' },
-  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 },
-  autoName:   { fontSize: 17, fontWeight: 600, color: '#172B4D' },
-  btnGroup:   { display: 'flex', gap: 8, flexWrap: 'wrap' },
-  actionBtn:  { border: 'none', borderRadius: 6, padding: '6px 12px', cursor: 'pointer', fontWeight: 600, fontSize: 12 },
-  flow:       { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 },
-  flowBadge:  { background: '#F4F5F7', padding: '4px 12px', borderRadius: 8, fontSize: 13, color: '#42526E' },
-  stats:      { display: 'flex', gap: 28, fontSize: 13, color: '#6B778C', flexWrap: 'wrap' },
-  primaryBtn: { background: 'linear-gradient(135deg, #6C47FF, #4A90E2)', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer', fontWeight: 600, fontSize: 14 },
 };
 
 export default AutomationList;
