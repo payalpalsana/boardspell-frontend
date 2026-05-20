@@ -1,17 +1,3 @@
-/**
- * Execution Logs Page
- * ====================
- * Shows the last 20 runs for a specific automation.
- * Each log entry shows:
- *   - Status badge (success / failed / skipped)
- *   - When it ran
- *   - What triggered it (human readable)
- *   - What action was taken (human readable)
- *   - Error message if it failed
- *
- * Also shows summary counts at the top.
- */
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getLogs } from '../api/client';
@@ -19,7 +5,7 @@ import StatusBadge from '../components/StatusBadge';
 
 const ExecutionLogs: React.FC = () => {
   const { automationId } = useParams<{ automationId: string }>();
-  const [logs, setLogs]       = useState<any[]>([]);
+  const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -31,103 +17,67 @@ const ExecutionLogs: React.FC = () => {
       .finally(() => setLoading(false));
   }, [automationId]);
 
-  /**
-   * Convert the raw trigger payload into a human-readable string.
-   * Instead of showing JSON, show something like:
-   * "Status changed to Done on item 12345"
-   */
   const formatTrigger = (payload: any): string => {
     if (!payload) return 'Unknown trigger';
-
-    // Parse if string
     if (typeof payload === 'string') {
       try { payload = JSON.parse(payload); } catch { return payload; }
     }
-
     if (payload.type === 'date_reached') {
       return `📅 Date trigger — item ${payload.item_id} matched today (${payload.date || ''})`;
     }
-
-    const eventType  = payload.type?.replace(/_/g, ' ') || 'event';
-    const column     = payload.columnId || '';
-    const valueText  = payload.value?.label?.text || payload.value?.text || '';
-    const itemId     = payload.pulseId || payload.item_id || '';
-
+    const eventType = payload.type?.replace(/_/g, ' ') || 'event';
+    const column    = payload.columnId || '';
+    const valueText = payload.value?.label?.text || payload.value?.text || '';
+    const itemId    = payload.pulseId || payload.item_id || '';
     return `🎯 ${eventType}${column ? ` on column "${column}"` : ''}${valueText ? ` → "${valueText}"` : ''}${itemId ? ` (item ${itemId})` : ''}`;
   };
 
-  /**
-   * Convert the raw action_taken data into a human-readable string.
-   */
   const formatAction = (action: any): string => {
     if (!action) return '';
-
-    // Parse if string
     if (typeof action === 'string') {
       try { action = JSON.parse(action); } catch { return action; }
     }
-
-    if (action.user_ids) {
-      return `Sent notification to ${action.user_ids.length} user(s): "${action.message || ''}"`;
-    }
-
-    if (action.user_id) {
-      return `Assigned user ${action.user_id} to item ${action.target_item_id || ''}`;
-    }
-
+    if (action.user_ids) return `Sent notification to ${action.user_ids.length} user(s): "${action.message || ''}"`;
+    if (action.user_id) return `Assigned user ${action.user_id} to item ${action.target_item_id || ''}`;
     if (action.value !== undefined && action.column_id) {
       return `Changed column "${action.column_id}" to "${action.value}" on item ${action.target_item_id || ''}`;
     }
-
     return JSON.stringify(action);
   };
 
-  // ── Counts ──────────────────────────────────────────────────────────────────
   const successCount = logs.filter(l => l.status === 'success').length;
   const failedCount  = logs.filter(l => l.status === 'failed').length;
   const skippedCount = logs.filter(l => l.status === 'skipped').length;
 
-  // ── Loading State ────────────────────────────────────────────────────────────
   if (loading) return (
-    <div style={{ textAlign: 'center', padding: 80, color: '#6B778C' }}>
-      ⏳ Loading execution logs...
-    </div>
+    <div className="text-center py-20 text-slate-500">⏳ Loading execution logs...</div>
   );
 
-  // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', padding: '28px 20px' }}>
+    <div className="max-w-[860px] mx-auto px-5 py-7">
 
-      {/* Back Button */}
+      {/* Back */}
       <button
-        style={{
-          background: 'none', border: 'none', color: '#6C47FF',
-          cursor: 'pointer', fontSize: 14, fontWeight: 600, padding: 0, marginBottom: 20,
-        }}
-        onClick={() => navigate('/')}>
+        className="bg-transparent border-0 text-[#6C47FF] cursor-pointer text-sm font-semibold p-0 mb-5"
+        onClick={() => navigate('/')}
+      >
         ← Back to Automations
       </button>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+      <div className="flex justify-between items-start mb-7 flex-wrap gap-4">
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 700, color: '#172B4D', margin: '0 0 4px' }}>
-            📋 Execution Logs
-          </h1>
-          <p style={{ color: '#6B778C', fontSize: 14, margin: 0 }}>
-            Last {logs.length} runs for this automation
-          </p>
+          <h1 className="text-2xl font-bold text-slate-800 mb-1">📋 Execution Logs</h1>
+          <p className="text-sm text-slate-500">Last {logs.length} runs for this automation</p>
         </div>
-
-        {/* Status Counts */}
-        <div style={{ display: 'flex', gap: 10 }}>
-          <span style={{ background: '#E6F9F0', color: '#00875A', padding: '5px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600 }}>
+        <div className="flex gap-2.5 flex-wrap">
+          <span className="bg-green-100 text-green-700 px-3.5 py-1 rounded-full text-sm font-semibold">
             ✅ {successCount} success
           </span>
-          <span style={{ background: '#FFF0F0', color: '#DE350B', padding: '5px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600 }}>
+          <span className="bg-red-100 text-red-600 px-3.5 py-1 rounded-full text-sm font-semibold">
             ❌ {failedCount} failed
           </span>
-          <span style={{ background: '#F4F5F7', color: '#6B778C', padding: '5px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600 }}>
+          <span className="bg-gray-100 text-gray-500 px-3.5 py-1 rounded-full text-sm font-semibold">
             ⏭️ {skippedCount} skipped
           </span>
         </div>
@@ -135,85 +85,44 @@ const ExecutionLogs: React.FC = () => {
 
       {/* Empty State */}
       {logs.length === 0 && (
-        <div style={{
-          textAlign: 'center', padding: 60, background: '#fff',
-          borderRadius: 14, border: '2px dashed #EBECF0',
-        }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
-          <h2 style={{ color: '#172B4D', margin: '0 0 8px' }}>No runs yet</h2>
-          <p style={{ color: '#6B778C', margin: 0 }}>
-            Trigger the automation by changing a status in monday.com
-          </p>
+        <div className="text-center py-16 bg-white rounded-xl border-2 border-dashed border-gray-200">
+          <div className="text-5xl mb-4">📭</div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">No runs yet</h2>
+          <p className="text-slate-500">Trigger the automation by changing a status in monday.com</p>
         </div>
       )}
 
       {/* Log Entries */}
       {logs.map((log, i) => (
-        <div key={log.id || i} style={{
-          background:   '#fff',
-          borderRadius: 12,
-          padding:      20,
-          marginBottom: 12,
-          boxShadow:    '0 1px 4px rgba(0,0,0,0.08)',
-          border:       '1px solid #EBECF0',
-        }}>
-          {/* Status + Timestamp */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+        <div key={log.id || i} className="bg-white rounded-xl p-5 mb-3 shadow-sm border border-gray-200">
+
+          <div className="flex items-center gap-3 mb-3">
             <StatusBadge status={log.status} />
-            <span style={{ fontSize: 13, color: '#6B778C' }}>
+            <span className="text-sm text-slate-500">
               🕐 {new Date(log.triggered_at).toLocaleString()}
             </span>
           </div>
 
-          {/* Trigger Info */}
           {log.trigger_payload && (
-            <div style={{
-              fontSize:    13,
-              color:       '#42526E',
-              background:  '#F8F9FA',
-              padding:     '8px 12px',
-              borderRadius: 6,
-              marginBottom: 8,
-            }}>
+            <div className="text-sm text-slate-600 bg-gray-50 px-3 py-2 rounded-md mb-2">
               {formatTrigger(log.trigger_payload)}
             </div>
           )}
 
-          {/* Success: Show what action was taken */}
           {log.status === 'success' && log.action_taken && (
-            <div style={{
-              fontSize:    13,
-              color:       '#00875A',
-              background:  '#E6F9F0',
-              padding:     '8px 12px',
-              borderRadius: 6,
-            }}>
+            <div className="text-sm text-green-700 bg-green-50 px-3 py-2 rounded-md">
               ⚡ {formatAction(log.action_taken)}
             </div>
           )}
 
-          {/* Skipped: Show reason */}
           {log.status === 'skipped' && (
-            <div style={{
-              fontSize:    13,
-              color:       '#FF8B00',
-              background:  '#FFF8E1',
-              padding:     '8px 12px',
-              borderRadius: 6,
-            }}>
+            <div className="text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-md">
               ⏭️ {log.error_message || 'Condition not met or trigger did not match'}
             </div>
           )}
 
-          {/* Failed: Show error */}
           {log.status === 'failed' && (
-            <div style={{
-              fontSize:    13,
-              color:       '#DE350B',
-              background:  '#FFF0F0',
-              padding:     '8px 12px',
-              borderRadius: 6,
-            }}>
+            <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-md">
               ❌ Error: {log.error_message || 'Unknown error occurred'}
             </div>
           )}
